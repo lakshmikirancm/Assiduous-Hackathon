@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      SEC_USER_AGENT: ${SEC_USER_AGENT:-CorpFinanceAutopilot/1.0 (docker-local)}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - corpfin_data:/app/data
+
+  # Browser runs on the host: JS must call a host-reachable API URL (mapped port 8000), not the Docker service name.
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
+    depends_on:
+      - api
+
+volumes:
+  corpfin_data:
